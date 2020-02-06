@@ -1,0 +1,97 @@
+<project name="dc3" default="build" basedir=".">
+	<description>
+		distribuded containerized clusters classifier
+	</description>
+	<presetdef name="javac">
+		<javac includeantruntime="false" >
+			<!-- <compilerarg value="-Xlint"/> --> <!-- TODO -->
+		</javac>
+	</presetdef>
+	<path id="dafult-classpath">
+		<fileset dir="lib/">
+			<include name="*.jar"/>
+		</fileset>
+		<!-- Moa? -->
+		<!-- <fileset dir="lib/moa">
+			<include name="*.jar"/>
+		</fileset> -->
+		<!--  -->
+	</path>
+	<path id="dafult-classpath-with-docker">
+		<fileset dir="lib/">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="lib/docker">
+			<include name="*.jar"/>
+		</fileset>
+		<!-- Moa? -->
+		<!-- <fileset dir="lib/moa">
+			<include name="*.jar"/>
+		</fileset> -->
+		<!--  -->
+	</path>
+	<property name="src" location="src/dc3"/>
+	<property name="build" location="build"/>
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+		<mkdir dir="${build}/Master"/>
+		<mkdir dir="${build}/Slave"/>
+		<mkdir dir="${build}/Docker"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac destdir="${build}/Master/" >
+			<src path="${src}/Master/"/>
+			<src path="${src}/Dataset/"/>
+			<src path="${src}/Network/"/>
+			<classpath refid="dafult-classpath" />
+		</javac>
+		<javac destdir="${build}/Slave/" >
+			<src path="${src}/Slave/"/>
+			<src path="${src}/Dataset/"/>
+			<src path="${src}/Network/"/>
+			<src path="${src}/Container/"/>
+			<classpath refid="dafult-classpath-with-docker" />
+		</javac>
+		<javac destdir="${build}/Docker/" >
+			<src path="${src}/Docker/"/>
+			<src path="${src}/Dataset/"/>
+			<src path="${src}/Network/"/>
+			<classpath refid="dafult-classpath" />
+		</javac>
+
+	</target>
+
+	<target name="build" depends="compile">
+		<jar jarfile="master.jar" basedir="${build}/Master/">
+			<manifest>
+				<attribute name="Main-Class" value="Master" />
+			</manifest>
+			<zipgroupfileset dir="lib" includes="*.jar"/>
+		</jar>
+		<jar jarfile="slave.jar" basedir="${build}/Slave/">
+			<manifest>
+				<attribute name="Main-Class" value="Slave" />
+			</manifest>
+			<zipgroupfileset dir="lib" includes="*.jar"/>
+			<zipgroupfileset dir="lib/docker" includes="*.jar"/>
+		</jar>
+		<jar jarfile="docker.jar" basedir="${build}/Docker/">
+			<manifest>
+				<attribute name="Main-Class" value="Docker" />
+			</manifest>
+			<zipgroupfileset dir="lib" includes="*.jar"/>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}/Master/"/>
+		<delete dir="${build}/Slave/"/>
+		<delete dir="${build}/Docker"/>
+		<delete dir="${build}"/>
+		<delete file="master.jar"/>
+		<delete file="slave.jar"/>
+		<delete file="docker.jar"/>
+	</target>
+</project>
